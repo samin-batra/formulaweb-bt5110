@@ -49,11 +49,16 @@
                               </table>
                           </div>
                           <div class="tab-pane container fade" id="lap-time">
-                              <canvas id="myChart" width="400" height="400"></canvas>
+                              <div class="col-12">
 
+                              <canvas id="myChart" width="400" height="400"></canvas>
+                            </div>
                           </div>
                             <div class="tab-pane container fade" id="qualy-diff">
-                                <canvas id="qualyChart" width="400" height="400"></canvas>
+                            <div class="col-12">
+                                 <canvas id="qualyChart" width="400" height="400"></canvas>
+
+                            </div>
                             </div>
                         </div>
                     <table>
@@ -109,31 +114,59 @@
         </script>
         <script>
             var sc_dataset = [];
+            var sc_labels = [];
             {% for qualy_data in races.Qualy_Diff %}
             var data = {
                 x:'{{qualy_data.x}}',
                 y:'{{qualy_data.y[0]}}'
             }
-            sc_dataset.push(data);
+            sc_labels.push('{{qualy_data.x}}');
+            sc_dataset.push({{qualy_data.y[0]}});
+
             {% endfor %}
             console.log(sc_dataset);
+            console.log(sc_labels);
             const plot_data = {
+                labels: sc_labels,
                 datasets: [{
                     label: 'Qualifying Plot',
                     data: sc_dataset,
-                    backgroundColor: 'rgb(255,99,132)'
+                    backgroundColor: [
+                          'rgba(119, 16, 78, 0.5)',
+                          'rgba(62, 203, 153, 0.5)',
+                          'rgba(0, 49, 77, 0.5)',
+                          'rgba(24, 25, 251, 0.5)',
+                          'rgba(226, 232, 204, 0.5)',
+                          'rgba(216, 84, 216, 0.5)',
+                          'rgba(66, 77, 211, 0.5)',
+                          'rgba(184, 185, 2, 0.5)',
+                          'rgba(110, 237, 153, 0.5)',
+                          'rgba(244, 156, 219, 0.5)'
+                        ],
+                        borderColor: [
+                          'rgb(119, 16, 78)',
+                          'rgb(62, 203, 153)',
+                          'rgb(0, 49, 77)',
+                          'rgb(24, 25, 251)',
+                          'rgb(226, 232, 204)',
+                          'rgb(216, 84, 216)',
+                          'rgb(66, 77, 211)',
+                          'rgb(184, 185, 2)',
+                          'rgb(110, 237, 153)',
+                          'rgb(244, 156, 219)'
+                        ],
+                        borderWidth: 1
                 }],
             };
-            new Chart(document.getElementById("qualyChart"), {
+            var chart = new Chart(document.getElementById("qualyChart"), {
                   type: 'bar',
-                  data: {
-                  datasets: [{
-                        data: sc_dataset
-                    }]
-                }
+                  data: plot_data,
+
 
                 }
             );
+
+            chart.canvas.parentNode.style.height = '128px';
         </script>
     </body>
 </html>

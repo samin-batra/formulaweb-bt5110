@@ -13,3 +13,11 @@ table   {
     font-family:'Cairo', sans-serif;
 
 }
+
+div#lap-time    {
+    height:100px;
+}
+
+div#qualy-diff  {
+    height:100px;
+}

@@ -78,9 +78,7 @@ def get_laptimes(connection):
     race_laptimes['Time_MS'] = race_laptimes['Time_MS']/1000
     laps = race_laptimes['Lap'].unique().tolist()
     drivers = pd.unique(race_laptimes['Name'])
-    lap_data = []
     lap_data = {'label': laps,'data':[{'data': race_laptimes.loc[race_laptimes['Name']==str(driver),'Time_MS'].values.tolist(), 'label': str(driver), 'borderColor': "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]), 'fill': False } for driver in drivers]}
-    json_str = json.dumps(lap_data)
     return lap_data
 
 
@@ -115,9 +113,6 @@ def get_qualy_comparisons(connection):
     curr_race = format_laptimes(curr_race)
     last_race_grouped = last_race.groupby(['constructorId']).agg({'q3':'mean'})
     curr_race_grouped = curr_race.groupby(['constructorId']).agg({'q3':'mean'})
-    print(last_race_grouped.index)
-    print(curr_race_grouped.index)
-    print(constructors_df.index)
     last_race_grouped = last_race_grouped.join(constructors_df, on="constructorId",how="inner")
     curr_race_grouped = curr_race_grouped.join(constructors_df, on="constructorId",how="inner")
     qualy_gains_df = last_race_grouped.join(curr_race_grouped,on="constructorId",how="inner",lsuffix='last_race',rsuffix='curr_race')
@@ -125,9 +120,7 @@ def get_qualy_comparisons(connection):
     qualy_gains_df.drop(columns='namelast_race',inplace=True)
     qualy_gains_df.rename(columns = {'q3last_race':'last_race','q3curr_race':'curr_race','namecurr_race':'name'},inplace=True)
     teams = qualy_gains_df['name'].unique().tolist()
-    # print(str(qualy_gains_df.loc[qualy_gains_df['name']=='McLaren','time_diff'].values[0]))
     qualy_json = [{'x': str(data),'y': qualy_gains_df.loc[qualy_gains_df['name']==str(data),'time_diff'].values} for data in teams]
-    print(qualy_json)
     return qualy_json
 
 
@@ -145,7 +138,6 @@ def home():
                                   "order by r.raceId desc limit 20;",connection)
     lap_data = get_laptimes(connection)
     qualy_diff = get_qualy_comparisons(connection)
-    print(qualy_diff)
     return_obj = {
         "Results": race_results_df,
         "Lap_Data": lap_data,
