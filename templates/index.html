@@ -11,6 +11,10 @@
                           <li class="nav-item">
                             <a class="nav-link" data-bs-toggle="tab" href="#lap-time">Lap Time Comparisons</a>
                           </li>
+
+                          <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#qualy-diff">Qualifying Comparisons</a>
+                          </li>
                         </ul>
 
                         <!-- Tab panes -->
@@ -48,6 +52,9 @@
                               <canvas id="myChart" width="400" height="400"></canvas>
 
                           </div>
+                            <div class="tab-pane container fade" id="qualy-diff">
+                                <canvas id="qualyChart" width="400" height="400"></canvas>
+                            </div>
                         </div>
                     <table>
 
@@ -100,6 +107,33 @@
                   }
                 });
         </script>
+        <script>
+            var sc_dataset = [];
+            {% for qualy_data in races.Qualy_Diff %}
+            var data = {
+                x:'{{qualy_data.x}}',
+                y:'{{qualy_data.y[0]}}'
+            }
+            sc_dataset.push(data);
+            {% endfor %}
+            console.log(sc_dataset);
+            const plot_data = {
+                datasets: [{
+                    label: 'Qualifying Plot',
+                    data: sc_dataset,
+                    backgroundColor: 'rgb(255,99,132)'
+                }],
+            };
+            new Chart(document.getElementById("qualyChart"), {
+                  type: 'bar',
+                  data: {
+                  datasets: [{
+                        data: sc_dataset
+                    }]
+                }
 
+                }
+            );
+        </script>
     </body>
 </html>

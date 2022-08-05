@@ -73,19 +73,14 @@ def get_laptimes(connection):
                     "where l.raceId in ( "
                     "select raceId from races where raceId in "
                     "(select raceId from results order by raceId desc limit 1))" ,connection)
-    # print(race_laptimes.head())
     race_laptimes['Time_MS'] = race_laptimes['Time_MS'].astype(int)
     race_laptimes['Name'] = race_laptimes['Name'].astype(str)
     race_laptimes['Time_MS'] = race_laptimes['Time_MS']/1000
-    # print(race_laptimes.head())
     laps = race_laptimes['Lap'].unique().tolist()
-    # print(type(laps))
     drivers = pd.unique(race_laptimes['Name'])
     lap_data = []
     lap_data = {'label': laps,'data':[{'data': race_laptimes.loc[race_laptimes['Name']==str(driver),'Time_MS'].values.tolist(), 'label': str(driver), 'borderColor': "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]), 'fill': False } for driver in drivers]}
-    # print(lap_data)
     json_str = json.dumps(lap_data)
-    # print(json_str)
     return lap_data
 
 
@@ -114,11 +109,26 @@ def get_qualy_comparisons(connection):
                             " select raceId from races where raceId in "
                             " (select raceId from results order by raceId desc limit 1) "
                             ")", connection)
+
+    constructors_df = pd.read_sql(" select constructorId, name from constructors",connection, index_col="constructorId")
     last_race = format_laptimes(last_race)
     curr_race = format_laptimes(curr_race)
-    print(last_race)
-    print(curr_race)
-    
+    last_race_grouped = last_race.groupby(['constructorId']).agg({'q3':'mean'})
+    curr_race_grouped = curr_race.groupby(['constructorId']).agg({'q3':'mean'})
+    print(last_race_grouped.index)
+    print(curr_race_grouped.index)
+    print(constructors_df.index)
+    last_race_grouped = last_race_grouped.join(constructors_df, on="constructorId",how="inner")
+    curr_race_grouped = curr_race_grouped.join(constructors_df, on="constructorId",how="inner")
+    qualy_gains_df = last_race_grouped.join(curr_race_grouped,on="constructorId",how="inner",lsuffix='last_race',rsuffix='curr_race')
+    qualy_gains_df['time_diff'] = qualy_gains_df['q3curr_race'] - qualy_gains_df['q3last_race']
+    qualy_gains_df.drop(columns='namelast_race',inplace=True)
+    qualy_gains_df.rename(columns = {'q3last_race':'last_race','q3curr_race':'curr_race','namecurr_race':'name'},inplace=True)
+    teams = qualy_gains_df['name'].unique().tolist()
+    # print(str(qualy_gains_df.loc[qualy_gains_df['name']=='McLaren','time_diff'].values[0]))
+    qualy_json = [{'x': str(data),'y': qualy_gains_df.loc[qualy_gains_df['name']==str(data),'time_diff'].values} for data in teams]
+    print(qualy_json)
+    return qualy_json
 
 
 @app.route("/")
@@ -127,23 +137,21 @@ def home():
     latest_race = Results.query.order_by(Results.resultId.desc()).first()
     res = Races.query.get(latest_race.raceId)
     result = Results.query.order_by(Results.resultId.desc()).first()
-    print(res.name)
-    print(result.number)
     race_results_df = pd.read_sql("select r.position as Position, d.forename || ' ' || d.surname as Name, "
                                   "c.name as Team, r.points as Points from results r inner JOIN "
                                   "drivers d on r.driverId=d.driverId "
                                   "inner join constructors c "
                                   "on c.constructorId=r.constructorId "
                                   "order by r.raceId desc limit 20;",connection)
-
     lap_data = get_laptimes(connection)
-    get_qualy_comparisons(connection)
+    qualy_diff = get_qualy_comparisons(connection)
+    print(qualy_diff)
     return_obj = {
         "Results": race_results_df,
         "Lap_Data": lap_data,
-        "Race_Name": res.name
+        "Race_Name": res.name,
+        'Qualy_Diff': qualy_diff
     }
-
     return render_template("index.html",races =return_obj)
 
 
