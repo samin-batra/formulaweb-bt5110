@@ -14,10 +14,17 @@ table   {
 
 }
 
+
 div#lap-time    {
-    height:100px;
+    padding: 2%;
 }
 
 div#qualy-diff  {
-    height:100px;
+    padding: 2%;
+}
+
+canvas  {
+    height:500px !important;
+    width:900px !important;
+    margin: auto;
 }

@@ -105,6 +105,9 @@
                       display: true,
                       text: 'Lap Time Comparisons'
                     },
+
+                    responsive: true,
+                    maintainAspectRatio: false,
                     hover: {
                      mode: 'index',
                      intersect: true
@@ -129,7 +132,7 @@
             const plot_data = {
                 labels: sc_labels,
                 datasets: [{
-                    label: 'Qualifying Plot',
+                    label: 'Time Gained/Lost since the previous race at this track',
                     data: sc_dataset,
                     backgroundColor: [
                           'rgba(119, 16, 78, 0.5)',
@@ -157,16 +160,27 @@
                         ],
                         borderWidth: 1
                 }],
+
             };
             var chart = new Chart(document.getElementById("qualyChart"), {
                   type: 'bar',
                   data: plot_data,
-
-
-                }
+                  options:  {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y:{
+                            ticks: {
+                                 callback: function(value, index, ticks) {
+                                    return value + 's';
+                                }
+                            }
+                        }
+                    }
+                  }
+              }
             );
 
-            chart.canvas.parentNode.style.height = '128px';
         </script>
     </body>
 </html>
