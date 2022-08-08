@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import random
 
@@ -5,10 +6,11 @@ from flask import *
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import json
+import psycopg2
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL","sqlite:///f1.db")
 db = SQLAlchemy(app)
 NUM_COLORS = 20
 
@@ -126,7 +128,11 @@ def get_qualy_comparisons(connection):
 
 @app.route("/")
 def home():
-    connection = sqlite3.connect("f1.db")
+    try:
+        connection = psycopg2.connect(app.config['SQLALCHEMY_DATABASE_URI'],sslmode='require')
+    except:
+        connection = sqlite3.connect("f1.db")
+
     latest_race = Results.query.order_by(Results.resultId.desc()).first()
     res = Races.query.get(latest_race.raceId)
     result = Results.query.order_by(Results.resultId.desc()).first()
