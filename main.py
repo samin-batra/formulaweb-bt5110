@@ -10,8 +10,8 @@ import psycopg2
 
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL","sqlite:///f1.db")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gapinbxblphdmc:1c43622893e88f691fd61932d40beafd181a1841ee16468a84fc24b157b877de@ec2-3-225-110-188.compute-1.amazonaws.com:5432/d4ujellibhunh7'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL","sqlite:///f1.db")
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gapinbxblphdmc:1c43622893e88f691fd61932d40beafd181a1841ee16468a84fc24b157b877de@ec2-3-225-110-188.compute-1.amazonaws.com:5432/d4ujellibhunh7'
 db = SQLAlchemy(app)
 NUM_COLORS = 20
 
