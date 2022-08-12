@@ -10,7 +10,7 @@ import psycopg2
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL","sqlite:///f1.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gapinbxblphdmc:1c43622893e88f691fd61932d40beafd181a1841ee16468a84fc24b157b877de@ec2-3-225-110-188.compute-1.amazonaws.com:5432/d4ujellibhunh7'
 db = SQLAlchemy(app)
 NUM_COLORS = 20
@@ -129,10 +129,7 @@ def get_qualy_comparisons(connection):
 
 @app.route("/")
 def home():
-    try:
-        connection = psycopg2.connect(app.config['SQLALCHEMY_DATABASE_URI'],sslmode='require')
-    except:
-        connection = sqlite3.connect("f1.db")
+    connection = sqlite3.connect("f1.db")
 
     latest_race = Results.query.order_by(Results.resultId.desc()).first()
     res = Races.query.get(latest_race.raceId)
