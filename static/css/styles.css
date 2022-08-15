@@ -1,7 +1,12 @@
 nav#formula-nav {
-
+    padding: 2%;
 }
 
+
+.container-fluid    {
+    padding: 0px;
+    overflow-x:hidden;
+}
 
 div#next-race   {
     border:1px solid black;
@@ -14,6 +19,14 @@ table   {
 
 }
 
+nav a   {
+    font-family:  'Montserrat', sans-serif;
+    text-decoration: none;
+}
+
+footer  {
+    font-family: 'Montserrat';
+}
 
 div#lap-time    {
     padding: 2%;

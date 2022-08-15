@@ -3,8 +3,7 @@
                 <h4 class="text-center">Last Race: {{races.Race_Name}}</h4>
                 <div class="container-fluid">
                         <!-- Nav tabs -->
-
-                        <ul class="nav nav-tabs justify-content-center">
+                            <ul class="nav nav-tabs justify-content-center">
                           <li class="nav-item">
                                 <a class="nav-link active" data-bs-toggle="tab" href="#results">Results</a>
                           </li>
@@ -16,6 +15,7 @@
                             <a class="nav-link" data-bs-toggle="tab" href="#qualy-diff">Qualifying Comparisons</a>
                           </li>
                         </ul>
+
 
                         <!-- Tab panes -->
                         <div class="tab-content">
@@ -65,6 +65,8 @@
 
                     </table>
                 </div>
+
+            {% include 'footer.html' %}
             </div>
         </div>
 
@@ -182,5 +184,3 @@
             );
 
         </script>
-    </body>
-</html>
