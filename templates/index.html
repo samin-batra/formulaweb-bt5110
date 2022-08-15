@@ -50,12 +50,18 @@
                           </div>
                           <div class="tab-pane container fade" id="lap-time">
                               <div class="col-12">
-
+                                <div class="alert alert-primary text-center" role="alert">
+                                    This page contains visualizations on the lap time comparisons between the drivers. Click on a driver name if you want it to disappear from the graph.
+                                </div>
                               <canvas id="myChart" width="400" height="400"></canvas>
                             </div>
                           </div>
                             <div class="tab-pane container fade" id="qualy-diff">
                             <div class="col-12">
+                                  <div class="alert alert-primary text-center" role="alert">
+                                    This page contains visualizations on the lap time that teams have lost since the last qualifying session at the same circuit. If it is above 0, the teams have become slower else they've become faster since the last race at the same circuit.
+                                  </div>
+
                                  <canvas id="qualyChart" width="400" height="400"></canvas>
 
                             </div>
@@ -126,7 +132,7 @@
                 y:'{{qualy_data.y[0]}}'
             }
             sc_labels.push('{{qualy_data.x}}');
-            sc_dataset.push({{qualy_data.y[0]}});
+            sc_dataset.push({{'{0:1f}'.format(qualy_data.y[0])}});
 
             {% endfor %}
             console.log(sc_dataset);
@@ -134,31 +140,32 @@
             const plot_data = {
                 labels: sc_labels,
                 datasets: [{
-                    label: 'Time Gained/Lost since the previous race at this track',
+                    label: 'Time Lost since the previous race at this track',
                     data: sc_dataset,
                     backgroundColor: [
-                          'rgba(119, 16, 78, 0.5)',
-                          'rgba(62, 203, 153, 0.5)',
-                          'rgba(0, 49, 77, 0.5)',
-                          'rgba(24, 25, 251, 0.5)',
-                          'rgba(226, 232, 204, 0.5)',
-                          'rgba(216, 84, 216, 0.5)',
-                          'rgba(66, 77, 211, 0.5)',
-                          'rgba(184, 185, 2, 0.5)',
-                          'rgba(110, 237, 153, 0.5)',
-                          'rgba(244, 156, 219, 0.5)'
+                          'rgba(255, 143, 0, 0.5)',
+                          'rgba(0, 6, 182, 0.5)',
+                          'rgba(230, 0, 0, 0.5)',
+                          'rgba(4, 0, 141, 0.5)',
+                          'rgba(150, 0, 18, 0.5)',
+                          'rgba(17, 156, 0, 0.5)',
+                          'rgba(0, 181, 156, 0.5)',
+                          'rgba(175, 175, 175, 0.5)',
+                          'rgba(81, 96, 184, 0.5)',
+                          'rgba(0, 120, 255, 0.5)'
                         ],
                         borderColor: [
-                          'rgb(119, 16, 78)',
-                          'rgb(62, 203, 153)',
-                          'rgb(0, 49, 77)',
-                          'rgb(24, 25, 251)',
-                          'rgb(226, 232, 204)',
-                          'rgb(216, 84, 216)',
-                          'rgb(66, 77, 211)',
-                          'rgb(184, 185, 2)',
-                          'rgb(110, 237, 153)',
-                          'rgb(244, 156, 219)'
+                          'rgba(255, 143, 0)',
+                          'rgba(0, 6, 182)',
+                          'rgba(230, 0, 0)',
+                          'rgba(4, 0, 141)',
+                          'rgba(27, 164, 0)',
+                          'rgba(175, 156, 0)',
+                          'rgba(0, 181, 156)',
+                          'rgba(175, 175, 175)',
+                          'rgba(81, 96, 184)',
+                          'rgba(0, 120, 255)'
+
                         ],
                         borderWidth: 1
                 }],
