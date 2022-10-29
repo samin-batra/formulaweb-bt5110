@@ -14,11 +14,8 @@ db = SQLAlchemy(app)
 NUM_COLORS = 20
 # postgresql+psycopg2://postgres:postgres@localhost:5432/f1db
 DB_URL = os.environ.get("DATABASE_URL")
-try:
-    engine = create_engine(DB_URL)
-except Exception:
-    # print(Exception.)
-    print("Connection didn't happen")
+engine = create_engine(DB_URL)
+
 def get_laptimes(raceId):
     race_laptimes = pd.read_sql(
         "select l.raceId as ""RaceId"", concat(d.firstname, ' ',d.lastname) as ""Name"", l.lap as ""Lap"",l.lap_position as ""Position"", l.lap_time as ""Time"",l.milliseconds as ""Time_MS"" from lap_times l natural inner join driver d "
