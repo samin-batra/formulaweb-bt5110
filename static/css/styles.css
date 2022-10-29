@@ -41,3 +41,7 @@ canvas  {
     width:900px !important;
     margin: auto;
 }
+
+.form-race  {
+    padding: 5%;
+}

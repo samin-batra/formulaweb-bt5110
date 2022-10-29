@@ -1,154 +1,95 @@
-import os
-import sqlite3
 import random
 
 from flask import *
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
-import json
-import psycopg2
+from sqlalchemy import create_engine, types
+
 
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gapinbxblphdmc:1c43622893e88f691fd61932d40beafd181a1841ee16468a84fc24b157b877de@ec2-3-225-110-188.compute-1.amazonaws.com:5432/d4ujellibhunh7'
 db = SQLAlchemy(app)
 NUM_COLORS = 20
 
+engine = create_engine("postgresql+psycopg2://postgres:postgres@localhost:5432/f1db")
 
-class Races(db.Model):
-    raceId = db.Column(db.Integer, primary_key=True)
-    year = db.Column(db.Integer)
-    round = db.Column(db.Integer)
-    circuitId = db.Column(db.Integer)
-    name = db.Column(db.String(200))
-    date = db.Column(db.String(200))
-    time = db.Column(db.String(200))
-    url = db.Column(db.String(300))
-    fp1_date = db.Column(db.String(50))
-    fp1_time = db.Column(db.String(50))
-    fp2_date = db.Column(db.String(50))
-    fp2_time = db.Column(db.String(50))
-    fp3_date = db.Column(db.String(50))
-    fp3_time = db.Column(db.String(50))
-    quali_date = db.Column(db.String(50))
-    quali_time = db.Column(db.String(50))
-    sprint_date = db.Column(db.String(50))
-    sprint_time = db.Column(db.String(50))
-
-
-class Circuits(db.Model):
-    circuitId = db.Column(db.Integer, primary_key=True)
-    circuitRef = db.Column(db.Text)
-    name = db.Column(db.Text)
-    location = db.Column(db.Text)
-    country = db.Column(db.Text)
-    lat = db.Column(db.Float)
-    lng = db.Column(db.Float)
-    alt = db.Column(db.Text)
-    url = db.Column(db.Text)
-
-
-class Results(db.Model):
-    raceId = db.Column(db.Integer)
-    resultId = db.Column(db.Integer, primary_key=True)
-    driverId = db.Column(db.Integer)
-    constructorId = db.Column(db.Integer)
-    number = db.Column(db.Text)
-    grid = db.Column(db.Integer)
-    position = db.Column(db.Text)
-    positionText = db.Column(db.Text)
-    positionOrder = db.Column(db.Text)
-    points = db.Column(db.Float)
-    laps = db.Column(db.Integer)
-    time = db.Column(db.Text)
-    milliseconds = db.Column(db.Text)
-    fastestLap = db.Column(db.Text)
-    rank = db.Column(db.Text)
-    fastestLapTime = db.Column(db.Text)
-    fastestLapSpeed = db.Column(db.Text)
-    statusId = db.Column(db.Integer)
-
-
-def get_laptimes(connection):
-    race_laptimes = pd.read_sql("select l.raceId as RaceId, d.forename || ' ' || d.surname as Name, l.lap as Lap, l.position as Position, l.time as Time, l.milliseconds as Time_MS from lap_times l "
-                    "inner join drivers d on l.driverId=d.driverId " 
-                    "where l.raceId in ( "
-                    "select raceId from races where raceId in "
-                    "(select raceId from results order by raceId desc limit 1))" ,connection)
-    race_laptimes['Time_MS'] = race_laptimes['Time_MS'].astype(int)
-    race_laptimes['Name'] = race_laptimes['Name'].astype(str)
-    race_laptimes['Time_MS'] = race_laptimes['Time_MS']/1000
-    laps = race_laptimes['Lap'].unique().tolist()
-    drivers = pd.unique(race_laptimes['Name'])
-    lap_data = {'label': laps,'data':[{'data': race_laptimes.loc[race_laptimes['Name']==str(driver),'Time_MS'].values.tolist(), 'label': str(driver), 'borderColor': "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]), 'fill': False } for driver in drivers]}
+def get_laptimes(raceId):
+    race_laptimes = pd.read_sql(
+        "select l.raceId as ""RaceId"", concat(d.firstname, ' ',d.lastname) as ""Name"", l.lap as ""Lap"",l.lap_position as ""Position"", l.lap_time as ""Time"",l.milliseconds as ""Time_MS"" from lap_times l natural inner join driver d "
+        "where l.raceId in (select raceId from race where raceId in (select raceId from results where raceId = '" + raceId + "'));",
+        engine)
+    print(race_laptimes.head())
+    race_laptimes['time_ms'] = race_laptimes['time_ms'].astype(int)
+    race_laptimes['name'] = race_laptimes['name'].astype(str)
+    race_laptimes['time_ms'] = race_laptimes['time_ms']/1000
+    laps = race_laptimes['lap'].unique().tolist()
+    drivers = pd.unique(race_laptimes['name'])
+    lap_data = {'label': laps,'data':[{'data': race_laptimes.loc[race_laptimes['name']==str(driver),'time_ms'].values.tolist(), 'label': str(driver), 'borderColor': "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]), 'fill': False } for driver in drivers]}
     return lap_data
 
 
-def format_laptimes(df):
-    df.drop(labels=['qualifyId','raceId','driverId'],axis=1)
-    df.loc[df['q1']=='\\N','q1'] = '-1'
-    df.loc[df['q2'] == '\\N', 'q2'] = '-1'
-    df.loc[df['q3'] == '\\N', 'q3'] = '-1'
-    df.loc[df['q2']=='-1','q3'] = df['q1']
-    df.loc[df['q3']=='-1','q3'] = df['q2']
-    q_split = df.loc[df['q3']!='-1','q3'].str.split(":",expand = True)
-    q_min = pd.to_numeric(q_split[0])
-    q_secs = pd.to_numeric(q_split[1])
-    df['q3'] = q_min*60 + q_secs
-    return df
 
 
-def get_qualy_comparisons(connection):
-    last_race = pd.read_sql("select * from qualifying where raceId in ("
-                            "select raceId from races where circuitId in "
-                            "(select circuitId from races where raceId in (select raceId from results order by raceId desc limit 1)) "
-                            "order by raceId desc"
-                            " limit 1 offset 1)",connection)
+def get_qualy_comparisons(raceId):
+    curr_race = pd.read_sql("select q.constructorid, avg( "
+                            "case when q.q3 is null and q.q2 is null then extract(EPOCH from q.q1)when q.q3 is null and q.q2 is not null then extract(EPOCH from q.q2) else extract(EPOCH from q.q3) end )" 
+                            " from qualifying q where q.raceId = '" + raceId +"' group by q.constructorid",engine)
 
-    curr_race = pd.read_sql(" select * from qualifying where raceId in ( "
-                            " select raceId from races where raceId in "
-                            " (select raceId from results order by raceId desc limit 1) "
-                            ")", connection)
+    last_race = pd.read_sql(" select q.constructorid, avg(case "
+                            "when q.q3 is null and q.q2 is null then extract(EPOCH from q.q1) "
+                            "when q.q3 is null and q.q2 is not null then extract(EPOCH from q.q2) "
+                            " else extract(EPOCH from q.q3) "
+                            "end) from qualifying q natural inner join race r "
+                            "where r.circuitname in (select circuitname from race r1 where r1.raceId='"+raceId +"')"
+                            "and r.raceId in (select raceId from race r2 where r2.raceId<>'" + raceId +"' and r2.circuitname=r.circuitname order by r2.year desc limit 1) group by q.constructorid", engine)
 
-    constructors_df = pd.read_sql(" select constructorId, name from constructors",connection, index_col="constructorId")
-    last_race = format_laptimes(last_race)
-    curr_race = format_laptimes(curr_race)
-    last_race_grouped = last_race.groupby(['constructorId']).agg({'q3':'mean'})
-    curr_race_grouped = curr_race.groupby(['constructorId']).agg({'q3':'mean'})
-    last_race_grouped = last_race_grouped.join(constructors_df, on="constructorId",how="inner")
-    curr_race_grouped = curr_race_grouped.join(constructors_df, on="constructorId",how="inner")
-    qualy_gains_df = last_race_grouped.join(curr_race_grouped,on="constructorId",how="inner",lsuffix='last_race',rsuffix='curr_race')
-    qualy_gains_df['time_diff'] = qualy_gains_df['q3curr_race'] - qualy_gains_df['q3last_race']
-    qualy_gains_df.drop(columns='namelast_race',inplace=True)
-    qualy_gains_df.rename(columns = {'q3last_race':'last_race','q3curr_race':'curr_race','namecurr_race':'name'},inplace=True)
+    constructors_df = pd.read_sql(" select constructorid, name from constructors",engine)
+    last_race_grouped = last_race.merge(constructors_df, on="constructorid",how="inner")
+    curr_race_grouped = curr_race.merge(constructors_df, on="constructorid",how="inner")
+    qualy_gains_df = last_race_grouped.merge(curr_race_grouped,on="constructorid",how="inner")
+    print(qualy_gains_df)
+    qualy_gains_df['time_diff'] = qualy_gains_df['avg_y'] - qualy_gains_df['avg_x']
+    qualy_gains_df.drop(columns='name_y',inplace=True)
+    qualy_gains_df.rename(columns = {'avg_x':'last_race','avg_y':'curr_race','name_x':'name'},inplace=True)
     teams = qualy_gains_df['name'].unique().tolist()
     qualy_json = [{'x': str(data),'y': qualy_gains_df.loc[qualy_gains_df['name']==str(data),'time_diff'].values} for data in teams]
     return qualy_json
 
 
-@app.route("/")
+@app.route("/",methods=["GET","POST"])
 def home():
-    connection = sqlite3.connect("f1.db")
+    # connection = sqlite3.connect("f1.db")
+    if request.method=="GET":
+        races_2022 = pd.read_sql("select r.raceId, r.name ""Race"", r.circuitname ""Circuit"" from race r where year = 2022 order by r.race_date",engine)
+        print(races_2022)
+        return render_template("index.html", race_details=races_2022, display=False)
+    elif request.method=="POST":
+        print(request.form)
+        raceId = request.form.get('race')
+        race_details = pd.read_sql("select r.year ""race_year"", r.name ""Race"", r.circuitname ""Circuit"" from race r where raceId='" + raceId + "';",engine)
+        print(race_details)
+        race_results_df = pd.read_sql("select r.positiontext ""Position"", d.firstname || ' ' || d.lastname ""Driver"", c.name ""Team"", r.points ""Points""  from results r natural inner JOIN "
+                                      "driver d "  
+                                      "natural inner join constructors c where r.raceId = '" + raceId + "' "
+                                      "order by r.raceId desc limit 20;",engine)
+        print(race_results_df)
+        race_details = race_details.to_dict()
+        print(race_details['race_year'][0])
+        str()
+        lap_data = get_laptimes(raceId)
+        qualy_diff = get_qualy_comparisons(raceId)
+        return_obj = {
+            "Results": race_results_df,
+            "Lap_Data": lap_data,
+            "Race_Name": race_details,
+            'Qualy_Diff': qualy_diff
+        }
+        races_2022 = pd.read_sql(
+            "select r.raceId, r.name ""Race"", r.circuitname ""Circuit"" from race r where year = 2022 order by r.race_date",
+            engine)
 
-    latest_race = Results.query.order_by(Results.resultId.desc()).first()
-    res = Races.query.get(latest_race.raceId)
-    result = Results.query.order_by(Results.resultId.desc()).first()
-    race_results_df = pd.read_sql("select r.position as Position, d.forename || ' ' || d.surname as Name, "
-                                  "c.name as Team, r.points as Points from results r inner JOIN "
-                                  "drivers d on r.driverId=d.driverId "
-                                  "inner join constructors c "
-                                  "on c.constructorId=r.constructorId "
-                                  "order by r.raceId desc limit 20;",connection)
-    lap_data = get_laptimes(connection)
-    qualy_diff = get_qualy_comparisons(connection)
-    return_obj = {
-        "Results": race_results_df,
-        "Lap_Data": lap_data,
-        "Race_Name": res.name,
-        'Qualy_Diff': qualy_diff
-    }
-    return render_template("index.html",races =return_obj)
+        return render_template("index.html",races =return_obj,display=True,race_details=races_2022)
 
 
 if __name__=='__main__':
