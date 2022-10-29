@@ -13,9 +13,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
 db = SQLAlchemy(app)
 NUM_COLORS = 20
 # postgresql+psycopg2://postgres:postgres@localhost:5432/f1db
-db_url = os.environ.get("DATABASE_URL")
-db_url = db_url.replace("postgres","postgresql")
-engine = create_engine(db_url)
+# db_url = os.environ.get("DATABASE_URL")
+# db_url = db_url.replace("postgres","postgresql")
+engine = create_engine("postgresql://dpnhdezluerfkj:955276296545a806b538a0c2e3dac6990ce70fde699d6295c8345d15388405f3@ec2-3-220-207-90.compute-1.amazonaws.com:5432/da4g07l0ov3t9u")
+
 
 def get_laptimes(raceId):
     race_laptimes = pd.read_sql(
@@ -75,7 +76,7 @@ def home():
         race_results_df = pd.read_sql("select r.positiontext ""Position"", d.firstname || ' ' || d.lastname ""Driver"", c.name ""Team"", r.points ""Points"", r.status ""Status""  from results r natural inner JOIN "
                                       "driver d "  
                                       "natural inner join constructors c where r.raceId = '" + raceId + "' "
-                                      "order by r.raceId desc limit 20;",engine)
+                                      "order by r.points desc limit 20;",engine)
         print(race_results_df)
         race_details = race_details.to_dict()
         print(race_details['race_year'][0])
