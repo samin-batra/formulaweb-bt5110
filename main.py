@@ -1,3 +1,4 @@
+import os
 import random
 
 from flask import *
@@ -11,8 +12,9 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
 db = SQLAlchemy(app)
 NUM_COLORS = 20
-
-engine = create_engine("postgresql+psycopg2://postgres:postgres@localhost:5432/f1db")
+# postgresql+psycopg2://postgres:postgres@localhost:5432/f1db
+DB_URL = os.environ.get("DATABASE_URL")
+engine = create_engine(DB_URL)
 
 def get_laptimes(raceId):
     race_laptimes = pd.read_sql(
@@ -69,7 +71,7 @@ def home():
         raceId = request.form.get('race')
         race_details = pd.read_sql("select r.year ""race_year"", r.name ""Race"", r.circuitname ""Circuit"" from race r where raceId='" + raceId + "';",engine)
         print(race_details)
-        race_results_df = pd.read_sql("select r.positiontext ""Position"", d.firstname || ' ' || d.lastname ""Driver"", c.name ""Team"", r.points ""Points""  from results r natural inner JOIN "
+        race_results_df = pd.read_sql("select r.positiontext ""Position"", d.firstname || ' ' || d.lastname ""Driver"", c.name ""Team"", r.points ""Points"", r.status ""Status""  from results r natural inner JOIN "
                                       "driver d "  
                                       "natural inner join constructors c where r.raceId = '" + raceId + "' "
                                       "order by r.raceId desc limit 20;",engine)
