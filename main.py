@@ -12,10 +12,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
 db = SQLAlchemy(app)
 NUM_COLORS = 20
-# postgresql+psycopg2://postgres:postgres@localhost:5432/f1db
-# db_url = os.environ.get("DATABASE_URL")
-# db_url = db_url.replace("postgres","postgresql")
-engine = create_engine("postgresql://dpnhdezluerfkj:955276296545a806b538a0c2e3dac6990ce70fde699d6295c8345d15388405f3@ec2-3-220-207-90.compute-1.amazonaws.com:5432/da4g07l0ov3t9u")
+db_url = os.environ.get("DATABASE_URL")
+db_url = db_url.replace("postgres","postgresql")
 
 
 def get_laptimes(raceId):
