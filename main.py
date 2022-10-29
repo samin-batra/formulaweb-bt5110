@@ -13,8 +13,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///f1.db"
 db = SQLAlchemy(app)
 NUM_COLORS = 20
 # postgresql+psycopg2://postgres:postgres@localhost:5432/f1db
-DB_URL = os.environ.get("DATABASE_URL")
-engine = create_engine(DB_URL)
+db_url = os.environ.get("DATABASE_URL")
+db_url = db_url.replace("postgres","postgresql")
+engine = create_engine(db_url)
 
 def get_laptimes(raceId):
     race_laptimes = pd.read_sql(
