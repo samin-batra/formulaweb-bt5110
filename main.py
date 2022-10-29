@@ -76,7 +76,7 @@ def home():
         race_results_df = pd.read_sql("select r.positiontext ""Position"", d.firstname || ' ' || d.lastname ""Driver"", c.name ""Team"", r.points ""Points"", r.status ""Status""  from results r natural inner JOIN "
                                       "driver d "  
                                       "natural inner join constructors c where r.raceId = '" + raceId + "' "
-                                      "order by r.points desc limit 20;",engine)
+                                      "order by r.positionorder asc limit 20;",engine)
         print(race_results_df)
         race_details = race_details.to_dict()
         print(race_details['race_year'][0])
