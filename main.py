@@ -14,6 +14,7 @@ db = SQLAlchemy(app)
 NUM_COLORS = 20
 db_url = os.environ.get("DATABASE_URL")
 db_url = db_url.replace("postgres","postgresql")
+engine = create_engine(db_url)
 
 
 def get_laptimes(raceId):
